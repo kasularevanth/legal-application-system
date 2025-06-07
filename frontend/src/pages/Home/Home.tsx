@@ -6,16 +6,13 @@ import {
   Typography,
   Button,
   Grid,
-  Card,
   CardContent,
-  CardActions,
   Chip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import {
-  Gavel,
   VoiceChat,
   TranslateSharp,
   Description,
