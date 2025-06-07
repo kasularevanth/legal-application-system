@@ -1,0 +1,30 @@
+[
+  {
+    "model": "legal_forms.formtemplate",
+    "pk": 1,
+    "fields": {
+      "name": "Civil Petition",
+      "form_type": "petition",
+      "description": "Template for filing civil petitions in court",
+      "template_json": {},
+      "legal_requirements": "This petition must be accompanied by required court fees, affidavit, and supporting documents as per CPC provisions.",
+      "court_types": ["District Court", "High Court"],
+      "language": "en",
+      "is_active": true
+    }
+  },
+  {
+    "model": "legal_forms.formtemplate",
+    "pk": 2,
+    "fields": {
+      "name": "Bail Application",
+      "form_type": "application",
+      "description": "Application for bail in criminal matters",
+      "template_json": {},
+      "legal_requirements": "Bail application must comply with Section 437/439 CrPC. Required documents: Copy of FIR, Charge sheet (if filed), Previous bail applications (if any).",
+      "court_types": ["Magistrate Court", "Sessions Court", "High Court"],
+      "language": "en",
+      "is_active": true
+    }
+  }
+]
