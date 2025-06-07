@@ -1,6 +1,6 @@
-# ============ frontend/src/components/__tests__/SpeechRecorder.test.tsx ============
+
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import SpeechRecorder from '../speech/SpeechRecorder/SpeechRecorder';

@@ -36,6 +36,7 @@ interface Application {
   created_at: string;
   updated_at: string;
   submitted_at?: string;
+  generated_document_url?: string; // Added this line
 }
 
 interface FormsState {
@@ -131,6 +132,20 @@ export const submitApplication = createAsyncThunk(
   }
 );
 
+export const fetchApplicationDetails = createAsyncThunk(
+  "forms/fetchApplicationDetails",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await formsAPI.getApplication(id); // Corrected API call
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch application details"
+      );
+    }
+  }
+);
+
 const formsSlice = createSlice({
   name: "forms",
   initialState,
@@ -172,6 +187,21 @@ const formsSlice = createSlice({
       .addCase(fetchUserApplications.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Fetch Application Details
+      .addCase(fetchApplicationDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.currentApplication = null; // Clear previous application details
+      })
+      .addCase(fetchApplicationDetails.fulfilled, (state, action: PayloadAction<Application>) => {
+        state.loading = false;
+        state.currentApplication = action.payload;
+      })
+      .addCase(fetchApplicationDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.currentApplication = null;
       })
       // Create Application
       .addCase(createApplication.pending, (state) => {
