@@ -10,6 +10,12 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-key')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# Custom user model
+AUTH_USER_MODEL = 'authentication.User'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -19,11 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'apps.authentication',
-    'apps.legal_forms',
-    'apps.speech_processing',
-    'apps.document_processing',
-    'apps.notifications',
+    'apps.authentication.apps.AuthenticationConfig',
+    'apps.legal_forms.apps.LegalFormsConfig',
+    'apps.speech_processing.apps.SpeechProcessingConfig',
+    'apps.document_processing.apps.DocumentProcessingConfig',
+    'apps.notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
@@ -59,11 +65,11 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='legal_app_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='password'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+        'NAME': 'legal_app_db',
+        'USER': 'postgres',
+        'PASSWORD': '',  # No password by default for local development
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
