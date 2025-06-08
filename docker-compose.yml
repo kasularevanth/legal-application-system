@@ -2,75 +2,174 @@
 version: "3.8"
 
 services:
-  db:
-    image: postgres:15
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bhasha_bandu_db
     environment:
       POSTGRES_DB: legal_app_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
+  # Redis for Caching and Celery
   redis:
     image: redis:7-alpine
+    container_name: bhasha_bandu_redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
+  # Django Backend API
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - media_volume:/app/media
+    container_name: bhasha_bandu_backend
     environment:
-      - DEBUG=True
-      - DB_HOST=db
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
       - DB_NAME=legal_app_db
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - DB_HOST=postgres
+      - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
+      - BHASHINI_API_KEY=${BHASHINI_API_KEY}
+      - BHASHINI_USER_ID=${BHASHINI_USER_ID}
+      - BHASHINI_INFERENCE_API_KEY=${BHASHINI_INFERENCE_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_ACCOUNT_NAME=${AZURE_ACCOUNT_NAME}
+      - AZURE_ACCOUNT_KEY=${AZURE_ACCOUNT_KEY}
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/static
+      - ./backend/logs:/app/logs
+    ports:
+      - "8000:8000"
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bhasha_bandu_celery_worker
+    command: celery -A legal_app_backend worker --loglevel=info --concurrency=4
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=legal_app_db
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - BHASHINI_API_KEY=${BHASHINI_API_KEY}
+      - BHASHINI_USER_ID=${BHASHINI_USER_ID}
+      - BHASHINI_INFERENCE_API_KEY=${BHASHINI_INFERENCE_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+    volumes:
+      - media_files:/app/media
+      - ./backend/logs:/app/logs
+    depends_on:
+      - postgres
       - redis
+      - backend
     restart: unless-stopped
 
+  # Celery Beat Scheduler
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bhasha_bandu_celery_beat
+    command: celery -A legal_app_backend beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=legal_app_db
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend/logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    restart: unless-stopped
+
+  # React Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8000/api}
+        - REACT_APP_WS_HOST=${REACT_APP_WS_HOST:-localhost:8000}
+    container_name: bhasha_bandu_frontend
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_BASE_URL=http://localhost:8000/api
     depends_on:
       - backend
     restart: unless-stopped
 
-  celery:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A legal_app_backend worker --loglevel=info
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: bhasha_bandu_nginx
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./backend:/app
-      - media_volume:/app/media
-    environment:
-      - DEBUG=True
-      - DB_HOST=db
-      - DB_NAME=legal_app_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-available:/etc/nginx/sites-available
+      - ./nginx/ssl:/etc/nginx/ssl
+      - static_files:/var/www/static
+      - media_files:/var/www/media
     depends_on:
-      - db
-      - redis
+      - backend
+      - frontend
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  media_volume:
+  redis_data:
+  media_files:
+  static_files:
+
+networks:
+  default:
+    name: bhasha_bandu_network
