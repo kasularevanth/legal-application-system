@@ -96,10 +96,9 @@ const Home: React.FC = () => {
             <Grid item xs={12} md={6}>
               <Box
                 component="img"
-                src="/images/legal-forms-illustration.svg"
+                src="https://png.pngtree.com/png-vector/20210731/ourmid/pngtree-legal-court-trial-character-illustration-png-image_3755439.jpg"
                 alt="Legal Forms Illustration"
                 sx={{
-                  width: "100%",
                   maxWidth: 500,
                   height: "auto",
                 }}

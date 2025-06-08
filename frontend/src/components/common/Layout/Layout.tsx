@@ -1,16 +1,18 @@
-import React, { ReactNode } from 'react';
-import { Box, Container } from '@mui/material';
+// ============ src/components/common/Layout/Layout.tsx ============
+import React, { ReactNode } from "react";
+import { Box, Container } from "@mui/material";
+import { Outlet } from "react-router-dom";
 
 interface LayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Placeholder for Header */}
       <Container component="main" sx={{ flexGrow: 1, py: 3 }}>
-        {children}
+        {children || <Outlet />}
       </Container>
       {/* Placeholder for Footer */}
     </Box>

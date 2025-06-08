@@ -14,7 +14,6 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Help } from "@mui/icons-material";
 import SpeechRecorder from "../../speech/SpeechRecorder";
 
@@ -133,20 +132,21 @@ const FormField: React.FC<FormFieldProps> = ({
         );
 
       case "date":
+        // Temporary fix: use text input for dates until MUI x-date-pickers is fixed
         return (
-          <DatePicker
+          <TextField
+            fullWidth
             label={label}
+            type="date"
             value={value}
-            onChange={(newValue) => onChange(newValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                fullWidth
-                required={is_required}
-                error={!!error}
-                helperText={error || description}
-              />
-            )}
+            onChange={(e) => onChange(e.target.value)}
+            required={is_required}
+            error={!!error}
+            helperText={error || description}
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         );
 
@@ -187,7 +187,7 @@ const FormField: React.FC<FormFieldProps> = ({
       {enableSpeech && ["text", "textarea"].includes(field_type) && (
         <Box mt={2}>
           <SpeechRecorder
-            onTranscriptionChange={(text) => {
+            onTranscriptionChange={(text: string) => {
               if (field_type === "textarea") {
                 onChange(value ? `${value} ${text}` : text);
               } else {

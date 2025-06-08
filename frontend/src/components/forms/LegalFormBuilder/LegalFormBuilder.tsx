@@ -17,10 +17,14 @@ import FormField from "../FormField";
 import SpeechRecorder from "../../speech/SpeechRecorder";
 import { analyzeSpeechForForm } from "../../../store/slices/speechSlice";
 
+// Use the same interface as in formsSlice
 interface FormTemplate {
   id: number;
   name: string;
   form_type: string;
+  description: string;
+  language: string;
+  court_types: string[];
   template_json: any;
   fields: FormFieldConfig[];
 }
@@ -40,18 +44,22 @@ interface LegalFormBuilderProps {
   template: FormTemplate;
   onSubmit: (formData: any) => void;
   onSave: (formData: any) => void;
+  initialData?: any;
 }
 
 const LegalFormBuilder: React.FC<LegalFormBuilderProps> = ({
   template,
   onSubmit,
   onSave,
+  initialData,
 }) => {
   const dispatch = useDispatch();
   const { transcription } = useSelector((state: RootState) => state.speech);
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, any>>(
+    initialData || {}
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSpeechInput, setShowSpeechInput] = useState(false);
 
@@ -168,7 +176,7 @@ const LegalFormBuilder: React.FC<LegalFormBuilderProps> = ({
                 Voice Input
               </Typography>
               <SpeechRecorder
-                onTranscriptionChange={(text) => {
+                onTranscriptionChange={(text: string) => {
                   // Auto-fill logic would be implemented here
                   console.log("Transcription:", text);
                 }}
@@ -182,7 +190,9 @@ const LegalFormBuilder: React.FC<LegalFormBuilderProps> = ({
                 key={field.field_name}
                 config={field}
                 value={formData[field.field_name] || ""}
-                onChange={(value) => handleFieldChange(field.field_name, value)}
+                onChange={(value: any) =>
+                  handleFieldChange(field.field_name, value)
+                }
                 error={errors[field.field_name]}
               />
             ))}

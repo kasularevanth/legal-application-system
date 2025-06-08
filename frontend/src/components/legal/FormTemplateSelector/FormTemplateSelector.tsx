@@ -1,3 +1,4 @@
+// ============ src/components/legal/FormTemplateSelector/FormTemplateSelector.tsx ============
 import React, { useState } from "react";
 import {
   Grid,
@@ -17,18 +18,21 @@ import {
 } from "@mui/material";
 import { Search, Gavel, Description } from "@mui/icons-material";
 
-interface Template {
+// Use the same interface as in formsSlice
+interface FormTemplate {
   id: number;
   name: string;
   form_type: string;
   description: string;
   language: string;
   court_types: string[];
+  template_json: any;
+  fields: any[];
 }
 
 interface FormTemplateSelectorProps {
-  templates: Template[];
-  onSelect: (template: Template) => void;
+  templates: FormTemplate[];
+  onSelect: (template: FormTemplate) => void;
   loading: boolean;
 }
 
@@ -160,7 +164,7 @@ const FormTemplateSelector: React.FC<FormTemplateSelectorProps> = ({
                   />
                 </Box>
 
-                {template.court_types.length > 0 && (
+                {template.court_types && template.court_types.length > 0 && (
                   <Box>
                     <Typography variant="caption" color="textSecondary">
                       Applicable Courts:

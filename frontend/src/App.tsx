@@ -6,7 +6,7 @@ import { GlobalStyles } from "./styles/globalStyles";
 import { RootState } from "./store";
 import { checkAuth } from "./store/slices/authSlice";
 import Layout from "./components/common/Layout";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+// import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -45,30 +45,9 @@ const App: React.FC = () => {
               isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
             }
           />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/create-application"
-            element={
-              <ProtectedRoute>
-                <CreateApplication />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/application/:id"
-            element={
-              <ProtectedRoute>
-                <ApplicationDetails />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/create-application" element={<CreateApplication />} />
+          <Route path="/application/:id" element={<ApplicationDetails />} />
           <Route path="/knowledge-base" element={<KnowledgeBase />} />
         </Route>
       </Routes>

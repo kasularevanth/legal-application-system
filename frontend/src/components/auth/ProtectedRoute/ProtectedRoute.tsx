@@ -1,17 +1,24 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router-dom';
-import { RootState } from '../../../store'; // Assuming RootState is in this location
+// ============ src/components/auth/ProtectedRoute/ProtectedRoute.tsx ============
+import React, { ReactNode } from "react";
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
+import { RootState } from "../../../store";
 
-const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, loading } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   if (loading) {
     // Optionally, return a loading spinner or null while checking auth state
     return <div>Loading...</div>;
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

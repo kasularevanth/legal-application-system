@@ -1,7 +1,7 @@
 // ============ src/hooks/useSpeech.ts ============
 import { useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store";
+import { RootState, AppDispatch } from "../store";
 import {
   startRecording,
   stopRecording,
@@ -11,7 +11,7 @@ import {
 } from "../store/slices/speechSlice";
 
 export const useSpeech = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const {
     isRecording,
     isProcessing,

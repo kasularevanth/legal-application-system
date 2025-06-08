@@ -7,6 +7,8 @@ interface FormTemplate {
   name: string;
   form_type: string;
   description: string;
+  language: string; // Added this property
+  court_types: string[]; // Added this property
   template_json: any;
   fields: FormField[];
 }
@@ -36,7 +38,7 @@ interface Application {
   created_at: string;
   updated_at: string;
   submitted_at?: string;
-  generated_document_url?: string; // Added this line
+  generated_document_url?: string;
 }
 
 interface FormsState {
@@ -136,7 +138,7 @@ export const fetchApplicationDetails = createAsyncThunk(
   "forms/fetchApplicationDetails",
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await formsAPI.getApplication(id); // Corrected API call
+      const response = await formsAPI.getApplication(id);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -192,12 +194,15 @@ const formsSlice = createSlice({
       .addCase(fetchApplicationDetails.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.currentApplication = null; // Clear previous application details
+        state.currentApplication = null;
       })
-      .addCase(fetchApplicationDetails.fulfilled, (state, action: PayloadAction<Application>) => {
-        state.loading = false;
-        state.currentApplication = action.payload;
-      })
+      .addCase(
+        fetchApplicationDetails.fulfilled,
+        (state, action: PayloadAction<Application>) => {
+          state.loading = false;
+          state.currentApplication = action.payload;
+        }
+      )
       .addCase(fetchApplicationDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
